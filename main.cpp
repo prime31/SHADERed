@@ -341,6 +341,11 @@ int main(int argc, char* argv[])
 				}
 			}
 #endif
+			if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
+				if (event.key.keysym.mod & KMOD_GUI) {
+					event.key.keysym.mod = KMOD_CTRL;
+				}
+			}
 			engine.OnEvent(event);
 		}
 
