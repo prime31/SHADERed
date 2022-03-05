@@ -21,6 +21,7 @@ namespace ed {
 			bool Alt;
 			bool Ctrl;
 			bool Shift;
+			bool Cmd;
 			std::function<void()> Function;
 			IPlugin1* Plugin;
 
@@ -30,15 +31,17 @@ namespace ed {
 					, Alt(false)
 					, Ctrl(false)
 					, Shift(false)
+					, Cmd(false)
 					, Function(nullptr)
 					, Plugin(nullptr)
 			{
 			}
-			Shortcut(int k1, int k2, bool alt, bool ctrl, bool shift)
+			Shortcut(int k1, int k2, bool alt, bool ctrl, bool shift, bool cmd)
 					: Key1(k1)
 					, Key2(k2)
 					, Alt(alt)
 					, Ctrl(ctrl)
+					, Cmd(cmd)
 					, Shift(shift)
 					, Plugin(nullptr)
 			{
@@ -51,11 +54,11 @@ namespace ed {
 		void Save();
 
 		// set vk2 to negative if not used
-		std::string Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift);
-		bool Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift);
+		std::string Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift, bool cmd);
+		bool Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift, bool cmd);
 		inline void Remove(const std::string& name)
 		{
-			m_data[name].Alt = m_data[name].Ctrl = m_data[name].Shift = false;
+			m_data[name].Alt = m_data[name].Ctrl = m_data[name].Shift = m_data[name].Cmd = false;
 			m_data[name].Key1 = m_data[name].Key2 = -1;
 		}
 		void SetCallback(const std::string& name, std::function<void()> func);

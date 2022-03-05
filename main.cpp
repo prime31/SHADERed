@@ -45,7 +45,7 @@ void SetDpiAware();
 int main(int argc, char* argv[])
 {
 	srand(time(NULL));
-	
+
 	std::error_code fsError;
 	std::filesystem::path cmdDir = std::filesystem::current_path();
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 			result[readlinkRes] = '\0';
 			exePath = std::string(dirname(result));
 		}
-		
+
 		std::vector<std::string> toCheck = {
 			"/../share/SHADERed",
 			"/../share/shadered"
@@ -102,8 +102,8 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		if (access(exePath.c_str(), W_OK) != 0) 
-			linuxUseHomeDir = true;		
+		if (access(exePath.c_str(), W_OK) != 0)
+			linuxUseHomeDir = true;
 	}
 
 	if (linuxUseHomeDir) {
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 			homedir = getenv("HOME");
 			homedirSuffix = "/.local/share";
 		}
-		
+
 		if (homedir != NULL) {
 			ed::Settings::Instance().LinuxHomeDirectory = std::string(homedir) + homedirSuffix + "/shadered/";
 
@@ -341,11 +341,6 @@ int main(int argc, char* argv[])
 				}
 			}
 #endif
-			if (event.type == SDL_KEYUP || event.type == SDL_KEYDOWN) {
-				if (event.key.keysym.mod & KMOD_GUI) {
-					event.key.keysym.mod = KMOD_CTRL;
-				}
-			}
 			engine.OnEvent(event);
 		}
 

@@ -33,7 +33,7 @@ namespace ed {
 		// pre setup Editor shortcuts (TODO: improve this... TextEditor::GetDefaultShortcuts())
 		std::vector<TextEditor::Shortcut> eds = TextEditor::GetDefaultShortcuts();
 		for (int i = 0; i < eds.size(); i++)
-			Set(std::string("Editor." + std::string(EDITOR_SHORTCUT_NAMES[i])).c_str(), eds[i].Key1, eds[i].Key2, eds[i].Alt, eds[i].Ctrl, eds[i].Shift);
+			Set(std::string("Editor." + std::string(EDITOR_SHORTCUT_NAMES[i])).c_str(), eds[i].Key1, eds[i].Key2, eds[i].Alt, eds[i].Ctrl, eds[i].Shift, false);
 
 		while (std::getline(file, str)) {
 			std::stringstream ss(str);
@@ -44,7 +44,7 @@ namespace ed {
 			if (name.empty()) continue;
 
 			int vk1 = -1, vk2 = -1;
-			bool alt = false, ctrl = false, shift = false;
+			bool alt = false, ctrl = false, shift = false, cmd = false;
 			while (ss >> token) {
 				if (token == "CTRL")
 					ctrl = true;
@@ -52,6 +52,8 @@ namespace ed {
 					alt = true;
 				else if (token == "SHIFT")
 					shift = true;
+				else if (token == "CMD")
+					cmd = true;
 				else if (token == "NONE")
 					break;
 				else {
@@ -62,7 +64,7 @@ namespace ed {
 				}
 			}
 
-			Set(name, vk1, vk2, alt, ctrl, shift);
+			Set(name, vk1, vk2, alt, ctrl, shift, cmd);
 		}
 
 		ed::Logger::Get().Log("Loaded shortcut information");
@@ -88,6 +90,8 @@ namespace ed {
 				file << " ALT";
 			if (s.second.Shift)
 				file << " SHIFT";
+			if (s.second.Cmd)
+				file << " CMD";
 			file << " " << SDL_GetKeyName(s.second.Key1);
 			if (s.second.Key2 != -1)
 				file << " " << SDL_GetKeyName(s.second.Key2);
@@ -99,10 +103,10 @@ namespace ed {
 
 		return;
 	}
-	std::string KeyboardShortcuts::Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift)
+	std::string KeyboardShortcuts::Exists(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift, bool cmd)
 	{
 		for (auto& i : m_data)
-			if (name != i.first && i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
+			if (name != i.first && i.second.Ctrl == ctrl && i.second.Alt == alt && i.second.Shift == shift && i.second.Cmd == cmd && i.second.Key1 == VK1 && (VK2 == -1 || i.second.Key2 == VK2 || i.second.Key2 == -1)) {
 				if (!(name == "CodeUI.Save" && i.first == "Project.Save") && !(name == "Project.Save" && i.first == "CodeUI.Save") &&
 					((name.find("Editor") == std::string::npos && i.first.find("Editor") == std::string::npos) || (name.find("Editor") != std::string::npos && i.first.find("Editor") != std::string::npos && // autocomplete is a "special module" added to the text editor and not actually the text editor
 					(name.find("Autocomplete") == std::string::npos && i.first.find("Autocomplete") == std::string::npos))))
@@ -112,18 +116,19 @@ namespace ed {
 			}
 		return "";
 	}
-	bool KeyboardShortcuts::Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift)
+	bool KeyboardShortcuts::Set(const std::string& name, int VK1, int VK2, bool alt, bool ctrl, bool shift, bool cmd)
 	{
-		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && !m_canSolo(name, VK1)))
+		if (VK1 == -1 || (alt == false && ctrl == false && shift == false && cmd == false && !m_canSolo(name, VK1)))
 			return false;
 
-		std::string ext = Exists(name, VK1, VK2, alt, ctrl, shift);
+		std::string ext = Exists(name, VK1, VK2, alt, ctrl, shift, cmd);
 		if (!ext.empty())
 			Remove(ext);
 
 		m_data[name].Alt = alt;
 		m_data[name].Ctrl = ctrl;
 		m_data[name].Shift = shift;
+		m_data[name].Cmd = cmd;
 		m_data[name].Key1 = VK1;
 		m_data[name].Key2 = VK2;
 
@@ -151,6 +156,8 @@ namespace ed {
 			ret += "ALT+";
 		if (m_data[name].Shift)
 			ret += "SHIFT+";
+		if (m_data[name].Cmd)
+			ret += "CMD+";
 		ret += std::string(SDL_GetKeyName(m_data[name].Key1)) + "+";
 		if (m_data[name].Key2 != -1)
 			ret += std::string(SDL_GetKeyName(m_data[name].Key2)) + "+";
@@ -176,6 +183,7 @@ namespace ed {
 		bool alt = e.key.keysym.mod & KMOD_ALT;
 		bool ctrl = e.key.keysym.mod & KMOD_CTRL;
 		bool shift = e.key.keysym.mod & KMOD_SHIFT;
+		bool cmd = e.key.keysym.mod & KMOD_GUI;
 
 		bool resetSecond = false, resetFirst = false;
 
@@ -184,7 +192,7 @@ namespace ed {
 				continue;
 
 			const Shortcut& s = hotkey.second;
-			if (s.Alt == alt && s.Ctrl == ctrl && s.Shift == shift) {
+			if (s.Alt == alt && s.Ctrl == ctrl && s.Shift == shift && s.Cmd == cmd) {
 				int key2 = m_keys[1];
 				if (s.Key2 == -1 && s.Key1 == key2 && (s.Function != nullptr || s.Plugin != nullptr)) {
 
@@ -196,7 +204,7 @@ namespace ed {
 					int key1 = m_keys[0];
 					if (key1 != -1)
 						for (const auto& clone : m_data)
-							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift && clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1) {
+							if (clone.second.Alt == alt && clone.second.Ctrl == ctrl && clone.second.Shift == shift && clone.second.Cmd == cmd && clone.second.Key1 == key1 && clone.second.Key2 == key2 && clone.second.Key2 != -1) {
 								found = true;
 							}
 

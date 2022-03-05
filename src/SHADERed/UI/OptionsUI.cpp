@@ -32,10 +32,11 @@ namespace ed {
 				m_newShortcut.Alt = e.key.keysym.mod & KMOD_ALT;
 				m_newShortcut.Ctrl = e.key.keysym.mod & KMOD_CTRL;
 				m_newShortcut.Shift = e.key.keysym.mod & KMOD_SHIFT;
+				m_newShortcut.Cmd = e.key.keysym.mod & KMOD_GUI;
 
-				if (e.key.keysym.sym != SDLK_LALT && e.key.keysym.sym != SDLK_LSHIFT && e.key.keysym.sym != SDLK_LCTRL && e.key.keysym.sym != SDLK_RALT && e.key.keysym.sym != SDLK_RSHIFT && e.key.keysym.sym != SDLK_RCTRL) {
+				if (e.key.keysym.sym != SDLK_LALT && e.key.keysym.sym != SDLK_LSHIFT && e.key.keysym.sym != SDLK_LCTRL && e.key.keysym.sym != SDLK_LGUI && e.key.keysym.sym != SDLK_RALT && e.key.keysym.sym != SDLK_RSHIFT && e.key.keysym.sym != SDLK_RCTRL && e.key.keysym.sym != SDLK_RGUI) {
 					std::string name = KeyboardShortcuts::Instance().GetNameList()[m_selectedShortcut];
-					if (name.find("Editor") == std::string::npos || m_newShortcut.Alt == true || m_newShortcut.Ctrl == true || m_newShortcut.Shift == true) {
+					if (name.find("Editor") == std::string::npos || m_newShortcut.Alt == true || m_newShortcut.Ctrl == true || m_newShortcut.Shift == true || m_newShortcut.Cmd == true) {
 						if (m_newShortcut.Key1 == -1)
 							m_newShortcut.Key1 = e.key.keysym.sym;
 						else if (m_newShortcut.Key2 == -1)
@@ -78,8 +79,8 @@ namespace ed {
 
 		ImGui::EndChild();
 
-		
-		
+
+
 		if (ifd::FileDialog::Instance().IsDone("OptionsFontDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
 				std::string file = std::filesystem::relative(ifd::FileDialog::Instance().GetResult()).generic_u8string();
@@ -112,10 +113,10 @@ namespace ed {
 
 		if (ImGui::BeginPopupModal("Are you sure?##opts_popup_shrtct")) {
 			ImGui::Text("This will unassign %s, are you sure you want to proceed?", m_exisitingShortcut.c_str());
-			
+
 			if (ImGui::Button("Yes")) {
 				std::vector<std::string> names = KeyboardShortcuts::Instance().GetNameList();
-				bool updated = KeyboardShortcuts::Instance().Set(names[m_selectedShortcut], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+				bool updated = KeyboardShortcuts::Instance().Set(names[m_selectedShortcut], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift, m_newShortcut.Cmd);
 				if (!updated)
 					KeyboardShortcuts::Instance().Remove(names[m_selectedShortcut]);
 				m_selectedShortcut = -1;
@@ -165,6 +166,8 @@ namespace ed {
 			ret += "ALT+";
 		if (m_newShortcut.Shift)
 			ret += "SHIFT+";
+		if (m_newShortcut.Cmd)
+			ret += "CMD+";
 		if (m_newShortcut.Key1 != -1)
 			ret += std::string(SDL_GetKeyName(m_newShortcut.Key1)) + "+";
 		if (m_newShortcut.Key2 != -1)
@@ -208,7 +211,7 @@ namespace ed {
 		m_snippetCode.SetActiveAutocomplete(false);
 		m_snippetCode.SetColorizerEnable(true);
 		m_snippetCode.SetScrollbarMarkers(false);
-		m_snippetCode.SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());		
+		m_snippetCode.SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());
 	}
 	void OptionsUI::m_loadThemeList()
 	{
@@ -760,10 +763,10 @@ namespace ed {
 				ImGui::Text(txt.c_str());
 				ImGui::SameLine();
 				if (ImGui::Button("ASSIGN")) {
-					m_exisitingShortcut = KeyboardShortcuts::Instance().Exists(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+					m_exisitingShortcut = KeyboardShortcuts::Instance().Exists(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift, m_newShortcut.Cmd);
 
 					if (m_exisitingShortcut.empty()) {
-						bool updated = KeyboardShortcuts::Instance().Set(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift);
+						bool updated = KeyboardShortcuts::Instance().Set(names[i], m_newShortcut.Key1, m_newShortcut.Key2, m_newShortcut.Alt, m_newShortcut.Ctrl, m_newShortcut.Shift, m_newShortcut.Cmd);
 						if (!updated)
 							KeyboardShortcuts::Instance().Remove(names[i]);
 						m_selectedShortcut = -1;
@@ -779,7 +782,7 @@ namespace ed {
 						KeyboardShortcuts::Instance().Remove(names[i]);
 					else {
 						m_selectedShortcut = i;
-						m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = false;
+						m_newShortcut.Ctrl = m_newShortcut.Alt = m_newShortcut.Shift = m_newShortcut.Cmd = false;
 						m_newShortcut.Key1 = m_newShortcut.Key2 = -1;
 					}
 				}
@@ -1075,7 +1078,7 @@ namespace ed {
 					m_snippetCode.SetText(snippet.Code);
 				}
 				ImGui::PopID();
-				ImGui::TableSetColumnIndex(1); 
+				ImGui::TableSetColumnIndex(1);
 				ImGui::Text(snippet.Display.c_str());
 				ImGui::TableSetColumnIndex(2);
 				ImGui::Text(snippet.Search.c_str());
