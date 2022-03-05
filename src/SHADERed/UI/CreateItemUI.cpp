@@ -39,7 +39,7 @@ namespace ed {
 		m_dialogShaderType = "";
 
 		m_fileAutoExtensionSel = 0;
-		
+
 		Reset();
 	}
 
@@ -224,7 +224,7 @@ namespace ed {
 			if (!data->GSUsed) ImGui::PopItemFlag();
 
 
-			
+
 			// ts used
 			ImGui::Text("Use tessellation shader:");
 			ImGui::NextColumn();
@@ -687,7 +687,7 @@ namespace ed {
 		ImGui::Columns();
 
 
-		
+
 		// file dialogs
 		if (ifd::FileDialog::Instance().IsDone("CreateItemShaderDlg")) {
 			if (ifd::FileDialog::Instance().HasResult()) {
@@ -966,7 +966,7 @@ namespace ed {
 
 				m_errorOccured = !m_data->Pipeline.AddItem(m_owner, m_item.Name, m_item.Type, data);
 				return !m_errorOccured;
-			} 
+			}
 		}
 
 		return false;
@@ -1008,6 +1008,12 @@ namespace ed {
 			}
 		}
 	}
+
+	static bool endsWith(const std::string& str, const std::string& suffix)
+	{
+		return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+	}
+
 	void CreateItemUI::m_createFile(const std::string& filename)
 	{
 		std::string fname = m_data->Parser.GetProjectPath(filename);
@@ -1016,9 +1022,17 @@ namespace ed {
 			std::filesystem::path path(fname);
 			if (path.has_parent_path())
 				std::filesystem::create_directories(path.parent_path());
-			std::ofstream shdr(fname);
-			shdr << "// empty shader file\n";
-			shdr.close();
+
+			// if we have a template file use it
+			if (endsWith(filename, "VS.glsl") && std::filesystem::exists("templates/VS.glsl")) {
+				std::filesystem::copy_file("templates/VS.glsl", fname);
+			} else if (endsWith(filename, "PS.glsl") && std::filesystem::exists("templates/PS.glsl")) {
+				std::filesystem::copy_file("templates/PS.glsl", fname);
+			} else {
+				std::ofstream shdr(fname);
+				shdr << "// empty shader file you asshat\n";
+				shdr.close();
+			}
 		}
 	}
 	void CreateItemUI::m_updateItemFilenames()

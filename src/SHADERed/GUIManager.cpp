@@ -195,7 +195,7 @@ namespace ed {
 
 		// turn on the tracker on startup
 		((CodeEditorUI*)Get(ViewID::Code))->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
-		
+
 		((OptionsUI*)m_options)->SetGroup(OptionsUI::Page::General);
 
 		// enable dpi awareness
@@ -375,7 +375,7 @@ namespace ed {
 					dds_image_t ddsImage = dds_load_from_file(actualFileLoc.c_str());
 					bool is3D = ddsImage->header.caps2 & DDSCAPS2_VOLUME;
 					dds_image_free(ddsImage);
-					
+
 					if (is3D)
 						m_data->Objects.CreateTexture3D(actualFileLoc);
 					else
@@ -565,13 +565,13 @@ namespace ed {
 				if (i + 1 < spvQueue.size())
 					if (std::count(spvQueue.begin() + i + 1, spvQueue.end(), spvItem) > 0)
 						hasDups = true;
-			
+
 				if (!hasDups) {
 					SPIRVParser spvParser;
 					if (spvItem->Type == PipelineItem::ItemType::ShaderPass) {
 						pipe::ShaderPass* pass = (pipe::ShaderPass*)spvItem->Data;
 						std::vector<std::string> allUniforms;
-						
+
 						bool deleteUnusedVariables = true;
 
 						if (pass->PSSPV.size() > 0) {
@@ -635,7 +635,7 @@ namespace ed {
 								m_autoUniforms(pass->Variables, spvParser, allUniforms);
 						}
 
-						if (settings.General.AutoUniforms && deleteUnusedVariables && settings.General.AutoUniformsDelete && 
+						if (settings.General.AutoUniforms && deleteUnusedVariables && settings.General.AutoUniformsDelete &&
 							pass->VSSPV.size() > 0 && pass->PSSPV.size() > 0 && ((pass->GSUsed && pass->GSSPV.size()>0) || !pass->GSUsed) &&
 							((pass->TSUsed && pass->TCSSPV.size() > 0 && pass->TESSPV.size() > 0) || !pass->TSUsed))
 							m_deleteUnusedUniforms(pass->Variables, allUniforms);
@@ -718,7 +718,7 @@ namespace ed {
 					ImGui::EndMenu();
 				}
 				if (ImGui::MenuItem("Open", KeyboardShortcuts::Instance().GetString("Project.Open").c_str())) {
-					
+
 					bool cont = true;
 					if (m_data->Parser.IsProjectModified()) {
 						int btnID = this->AreYouSure();
@@ -829,7 +829,7 @@ namespace ed {
 					if (ImGui::MenuItem("Empty 3D image", KeyboardShortcuts::Instance().GetString("Project.NewImage3D").c_str()))
 						this->CreateNewImage3D();
 
-					
+
 					bool hasKBTexture = m_data->Objects.HasKeyboardTexture();
 					if (hasKBTexture) {
 						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -841,7 +841,7 @@ namespace ed {
 						ImGui::PopStyleVar();
 						ImGui::PopItemFlag();
 					}
-					
+
 					m_data->Plugins.ShowMenuItems("createitem");
 
 					ImGui::EndMenu();
@@ -864,7 +864,7 @@ namespace ed {
 				}
 				if (ImGui::MenuItem("Reload textures")) {
 					std::vector<ObjectManagerItem*>& objs = m_data->Objects.GetObjects();
-					
+
 					for (const auto& obj : objs) {
 						if (obj->Type == ObjectType::Texture)
 							m_data->Objects.ReloadTexture(obj, obj->Name);
@@ -925,7 +925,7 @@ namespace ed {
 
 				ImGui::MenuItem("Performance Mode", KeyboardShortcuts::Instance().GetString("Workspace.PerformanceMode").c_str(), &m_perfModeFake);
 				ImGui::MenuItem("Focus mode", KeyboardShortcuts::Instance().GetString("Workspace.FocusMode").c_str(), &m_focusModeTemp);
-				
+
 				if (ImGui::MenuItem("Options", KeyboardShortcuts::Instance().GetString("Workspace.Options").c_str())) {
 					m_optionsOpened = true;
 					*m_settingsBkp = settings;
@@ -980,7 +980,7 @@ namespace ed {
 			((PreviewUI*)Get(ViewID::Preview))->Update(delta);
 
 			// focus mode
-			if (m_focusMode) 
+			if (m_focusMode)
 				m_renderFocusMode();
 		}
 
@@ -1007,7 +1007,7 @@ namespace ed {
 						ImGui::End();
 					}
 				}
-				
+
 				// geometry output window
 				if (m_data->Debugger.GetStage() == ShaderStage::Geometry) {
 					ImGui::SetNextWindowSizeConstraints(ImVec2(80, 80), ImVec2(m_width * 2, m_height * 2));
@@ -1091,7 +1091,7 @@ namespace ed {
 		if (ImGui::Begin("##splash_screen", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 			ImGui::SetCursorPos(ImVec2((m_width - 350) / 2, (m_height - 324) / 6));
 			ImGui::Image((ImTextureID)m_splashScreenIcon, ImVec2(350, 324));
-			
+
 			ImGui::SetCursorPos(ImVec2((m_width - 199) / 2, m_height - 202 - 48));
 			ImGui::Image((ImTextureID)m_splashScreenText, ImVec2(199, 46));
 
@@ -1141,7 +1141,7 @@ namespace ed {
 
 			// load plugins
 			m_data->Plugins.Init(m_data, this);
-			
+
 			// once we loaded plugins, we can get the complete list of all languages
 			m_createUI->UpdateLanguageList();
 			((PipelineUI*)Get(ViewID::Pipeline))->UpdateLanguageList();
@@ -1172,7 +1172,7 @@ namespace ed {
 			if (m_isIncompatPluginsOpened) {
 				const std::vector<std::string>& incompat = m_data->Plugins.GetIncompatiblePlugins();
 				std::vector<std::string>& notLoaded = Settings::Instance().Plugins.NotLoaded;
-				
+
 				for (const auto& plg : incompat)
 					if (std::count(notLoaded.begin(), notLoaded.end(), plg) == 0)
 						notLoaded.push_back(plg);
@@ -1185,7 +1185,7 @@ namespace ed {
 
 		stbi_set_flip_vertically_on_load(0);
 
-		// logo 
+		// logo
 		int req_format = STBI_rgb_alpha;
 		int width, height, orig_format;
 		unsigned char* data = stbi_load("./data/splash_screen_logo.png", &width, &height, &orig_format, req_format);
@@ -1634,7 +1634,7 @@ namespace ed {
 		ImGui::PopStyleColor(2);
 
 
-		
+
 		if (m_data->Debugger.IsDebugging()) {
 			// GS OUTPUT WINDOW //
 			if (m_data->Debugger.GetStage() == ShaderStage::Geometry) {
@@ -1785,7 +1785,7 @@ namespace ed {
 
 			uniformList.push_back(unif.Name);
 
-			// add it 
+			// add it
 			if (!exists) {
 				// type
 				ShaderVariable::ValueType valType = getTypeFromSPV(unif.Type);
@@ -1935,8 +1935,8 @@ namespace ed {
 		m_data->Parser.SaveAs(savePath, true);
 		Open(savePath);
 		m_data->Parser.SetOpenedFile("");
-		
-		
+
+
 
 		codeUI->SetTrackFileChanges(Settings::Instance().General.RecompileOnFileChange);
 	}
@@ -1958,7 +1958,7 @@ namespace ed {
 		for (PipelineItem*& pass : passes)
 			m_data->Renderer.Recompile(pass->Name);
 
-		m_recompiledAll = true; 
+		m_recompiledAll = true;
 
 		return true;
 	}
@@ -2079,7 +2079,7 @@ namespace ed {
 
 			if (sizeMulti != 1) free(outPixels);
 			free(pixels);
-		} 
+		}
 		else { // sequence render
 			float seqDelta = 1.0f / m_savePreviewSeqFPS;
 
@@ -2380,7 +2380,7 @@ namespace ed {
 
 		// File dialogs (open project, create texture, create audio, pick cubemap face texture)
 		if (ifd::FileDialog::Instance().IsDone("OpenProjectDlg")) {
-			if (ifd::FileDialog::Instance().HasResult()) 
+			if (ifd::FileDialog::Instance().HasResult())
 				Open(ifd::FileDialog::Instance().GetResult().u8string());
 
 			ifd::FileDialog::Instance().Close();
@@ -2467,8 +2467,8 @@ namespace ed {
 		}
 
 		// Create Item popup
-		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(530), Settings::Instance().CalculateSize(300)), ImGuiCond_Always);
-		if (ImGui::BeginPopupModal("Create Item##main_create_item", 0, ImGuiWindowFlags_NoResize)) {
+		ImGui::SetNextWindowSize(ImVec2(Settings::Instance().CalculateSize(530), Settings::Instance().CalculateSize(300)), ImGuiCond_FirstUseEver);
+		if (ImGui::BeginPopupModal("Create Item##main_create_item", 0)) {
 			m_createUI->Update(delta);
 
 			if (ImGui::Button("Ok")) {
@@ -3208,7 +3208,7 @@ namespace ed {
 		if (curVer < WebAPI::InternalVersion) {
 			m_data->API.FetchChangelog([&](const std::string& str) -> void {
 				m_isChangelogOpened = true;
-				
+
 				size_t firstNewline = str.find_first_of('\n');
 				if (firstNewline != std::string::npos) {
 					m_changelogText = str.substr(firstNewline + 1);

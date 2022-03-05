@@ -59,7 +59,7 @@ namespace ifd {
 		}
 		if (hovered || active)
 			window->DrawList->AddRectFilled(window->DC.LastItemRect.Min, window->DC.LastItemRect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered]));
-		
+
 		// Icon, text
 		float icon_posX = pos.x + g.FontSize + g.Style.FramePadding.y;
 		float text_posX = icon_posX + g.Style.FramePadding.y + ICON_SIZE;
@@ -86,7 +86,7 @@ namespace ifd {
 		// Icon, text
 		window->DrawList->AddImage(icon, ImVec2(pos.x, pos.y), ImVec2(pos.x + ICON_SIZE, pos.y + ICON_SIZE));
 		ImGui::RenderText(ImVec2(pos.x + g.Style.FramePadding.y + ICON_SIZE, pos.y + g.Style.FramePadding.y), label);
-		
+
 		return ret;
 	}
 	bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, ImVec2 size_arg) {
@@ -97,7 +97,7 @@ namespace ifd {
 		bool ret = false;
 		const ImGuiID id = window->GetID(label);
 		int* state = window->StateStorage.GetIntRef(id, 0);
-		
+
 		ImGui::SameLine();
 
 		ImGuiContext& g = *GImGui;
@@ -106,7 +106,7 @@ namespace ifd {
 		ImVec2 uiPos = ImGui::GetCursorPos();
 		ImVec2 size = ImGui::CalcItemSize(size_arg, 200, GUI_ELEMENT_SIZE);
 		const ImRect bb(pos, pos + size);
-		
+
 		// buttons
 		if (!(*state & 0b001)) {
 			ImGui::PushClipRect(bb.Min, bb.Max, false);
@@ -187,9 +187,9 @@ namespace ifd {
 				*state &= 0b110;
 
 			// hover state
-			if (!anyOtherHC && hovered && !clicked) 
+			if (!anyOtherHC && hovered && !clicked)
 				*state |= 0b010;
-			else 
+			else
 				*state &= 0b101;
 
 			ImGui::PopClipRect();
@@ -210,7 +210,7 @@ namespace ifd {
 			if (ImGui::InputTextEx("##pathbox_input", "", pathBuffer, 1024, size_arg, ImGuiInputTextFlags_EnterReturnsTrue)) {
 				std::string tempStr(pathBuffer);
 				if (std::filesystem::exists(tempStr))
-					path = std::filesystem::u8path(tempStr); 
+					path = std::filesystem::u8path(tempStr);
 				ret = true;
 			}
 			if (!skipActiveCheck && !ImGui::IsItemActive())
@@ -226,7 +226,7 @@ namespace ifd {
 
 		ImVec2 pos = window->DC.CursorPos;
 		bool ret = ImGui::InvisibleButton(label, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE));
-		
+
 		bool hovered = ImGui::IsItemHovered();
 		bool active = ImGui::IsItemActive();
 
@@ -298,7 +298,7 @@ namespace ifd {
 		float iconPosX = pos.x + (size.x - iconSize) / 2.0f;
 		ImVec2 textSize = ImGui::CalcTextSize(label, 0, true, size.x);
 
-		
+
 		if (hovered || active || isSelected)
 			window->DrawList->AddRectFilled(window->DC.LastItemRect.Min, window->DC.LastItemRect.Max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : (isSelected ? ImGuiCol_Header : ImGuiCol_HeaderHovered)]));
 
@@ -315,7 +315,7 @@ namespace ifd {
 			window->DrawList->AddImage(icon, ImVec2(previewPosX, previewPosY), ImVec2(previewPosX + availSize.x, previewPosY + availSize.y));
 		} else
 			window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y), ImVec2(iconPosX + iconSize, pos.y + iconSize));
-		
+
 		window->DrawList->AddText(g.Font, g.FontSize, ImVec2(pos.x + (size.x-textSize.x) / 2.0f, pos.y + iconSize), ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
 
 
@@ -361,7 +361,11 @@ namespace ifd {
 		m_previewLoader = nullptr;
 		m_previewLoaderRunning = false;
 
-		m_setDirectory(std::filesystem::current_path(), false);
+		const char *homedir = getenv("HOME");
+		if (homedir != NULL)
+			m_setDirectory(std::string(homedir), false);
+		else
+			m_setDirectory(std::filesystem::current_path(), false);
 
 		// favorites are available on every OS
 		FileTreeNode* quickAccess = new FileTreeNode("Quick Access");
@@ -411,7 +415,7 @@ namespace ifd {
 		pw = getpwuid(uid);
 		if (pw) {
 			std::string homePath = "/home/" + std::string(pw->pw_name);
-			
+
 			if (std::filesystem::exists(homePath, ec))
 				quickAccess->Children.push_back(new FileTreeNode(homePath));
 			if (std::filesystem::exists(homePath + "/Desktop", ec))
@@ -558,7 +562,7 @@ namespace ifd {
 			return;
 
 		m_favorites.push_back(path);
-		
+
 		// add to sidebar
 		for (auto& p : m_treeCache)
 			if (p->Path == "Quick Access") {
@@ -566,7 +570,7 @@ namespace ifd {
 				break;
 			}
 	}
-	
+
 	void FileDialog::m_select(const std::filesystem::path& path, bool isCtrlDown)
 	{
 		bool multiselect = isCtrlDown && m_isMultiselect;
@@ -605,7 +609,7 @@ namespace ifd {
 	bool FileDialog::m_finalize(const std::string& filename)
 	{
 		bool hasResult = (!filename.empty() && m_type != IFD_DIALOG_DIRECTORY) || m_type == IFD_DIALOG_DIRECTORY;
-		
+
 		if (hasResult) {
 			if (!m_isMultiselect || m_selections.size() <= 1) {
 				std::filesystem::path path = std::filesystem::u8path(filename);
@@ -630,7 +634,7 @@ namespace ifd {
 					}
 				}
 			}
-			
+
 			if (m_type == IFD_DIALOG_SAVE) {
 				// add the extension
 				if (m_filterSelection < m_filterExtensions.size() && m_filterExtensions[m_filterSelection].size() > 0) {
@@ -739,7 +743,7 @@ namespace ifd {
 
 		ICONINFO iconInfo = { 0 };
 		GetIconInfo(fileInfo.hIcon, &iconInfo);
-		
+
 		if (iconInfo.hbmColor == nullptr)
 			return nullptr;
 
@@ -927,7 +931,7 @@ namespace ifd {
 		std::filesystem::path pCopy = p;
 		m_content.clear(); // p == "" after this line, due to reference
 		m_selectedFileItem = -1;
-		
+
 		if (m_type == IFD_DIALOG_DIRECTORY || m_type == IFD_DIALOG_FILE)
 			m_inputTextbox[0] = 0;
 		m_selections.clear();
@@ -943,7 +947,7 @@ namespace ifd {
 					for (auto& c : node->Children)
 						m_content.push_back(FileData(c->Path));
 			}
-		} 
+		}
 		else if (pCopy.u8string() == "This PC") {
 			for (auto& node : m_treeCache) {
 				if (node->Path == p)
@@ -1102,7 +1106,7 @@ namespace ifd {
 				ImGui::TableAutoHeaders();
 
 				// sort
-				// GIT-TODO: 
+				// GIT-TODO:
 				if (const ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
                     if (sortSpecs->SpecsChanged) {
 						m_sortContent(sortSpecs->Specs->ColumnUserID, sortSpecs->Specs->SortDirection);
@@ -1115,7 +1119,7 @@ namespace ifd {
 					std::string filename = entry.Path.filename().u8string();
 					if (filename.size() == 0)
 						filename = entry.Path.u8string(); // drive
-					
+
 					bool isSelected = std::count(m_selections.begin(), m_selections.end(), entry.Path);
 
 					ImGui::TableNextRow();
@@ -1280,7 +1284,7 @@ namespace ifd {
 	{
 		/***** TOP BAR *****/
 		bool noBackHistory = m_backHistory.empty(), noForwardHistory = m_forwardHistory.empty();
-		
+
 		ImGui::PushStyleColor(ImGuiCol_Button, 0);
 		if (noBackHistory) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		if (ImGui::ArrowButtonEx("##back", ImGuiDir_Left, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE), m_backHistory.empty() * ImGuiButtonFlags_Disabled)) {
@@ -1292,7 +1296,7 @@ namespace ifd {
 		}
 		if (noBackHistory) ImGui::PopStyleVar();
 		ImGui::SameLine();
-		
+
 		if (noForwardHistory) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		if (ImGui::ArrowButtonEx("##forward", ImGuiDir_Right, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE), m_forwardHistory.empty() * ImGuiButtonFlags_Disabled)) {
 			std::filesystem::path newPath = m_forwardHistory.top();
@@ -1303,21 +1307,21 @@ namespace ifd {
 		}
 		if (noForwardHistory) ImGui::PopStyleVar();
 		ImGui::SameLine();
-		
+
 		if (ImGui::ArrowButtonEx("##up", ImGuiDir_Up, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE))) {
 			if (m_currentDirectory.has_parent_path())
 				m_setDirectory(m_currentDirectory.parent_path());
 		}
-		
+
 		std::filesystem::path curDirCopy = m_currentDirectory;
 		if (PathBox("##pathbox", curDirCopy, m_pathBuffer, ImVec2(-250, GUI_ELEMENT_SIZE)))
 			m_setDirectory(curDirCopy);
 		ImGui::SameLine();
-		
+
 		if (FavoriteButton("##dirfav", std::count(m_favorites.begin(), m_favorites.end(), m_currentDirectory.u8string()))) {
 			if (std::count(m_favorites.begin(), m_favorites.end(), m_currentDirectory.u8string()))
 				RemoveFavorite(m_currentDirectory.u8string());
-			else 
+			else
 				AddFavorite(m_currentDirectory.u8string());
 		}
 		ImGui::SameLine();
@@ -1341,7 +1345,7 @@ namespace ifd {
 			for (auto node : m_treeCache)
 				m_renderTree(node);
 			ImGui::EndChild();
-			
+
 			// content on the right side
 			ImGui::TableSetColumnIndex(1);
 			ImGui::BeginChild("##contentContainer", ImVec2(0, -bottomBarHeight));
@@ -1359,7 +1363,7 @@ namespace ifd {
 		}
 
 
-		
+
 		/***** BOTTOM BAR *****/
 		ImGui::Text("File name:");
 		ImGui::SameLine();
